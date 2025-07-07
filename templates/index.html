@@ -1,0 +1,165 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RILEYELLY AI Chatbot</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background-color: #f0f0f0;
+    }
+
+    header {
+      background-color: #222;
+      color: white;
+      padding: 12px 24px;
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .chatbox {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      height: 80vh;
+      overflow-y: auto;
+      background-color: #eee;
+    }
+
+    .user, .bot {
+      max-width: 65%;
+      margin-bottom: 10px;
+      padding: 12px;
+      border-radius: 10px;
+      line-height: 1.4;
+      white-space: pre-wrap;
+    }
+
+    .user {
+      align-self: flex-start;
+      background-color: #d4f6ff;
+    }
+
+    .bot {
+      align-self: flex-end;
+      background-color: #00897b;
+      color: white;
+    }
+
+    footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fff;
+      padding: 10px 12px;
+      border-top: 1px solid #ccc;
+    }
+
+    #user-input {
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      margin-right: 10px;
+    }
+
+    .icon-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    button {
+      padding: 8px 12px;
+      font-size: 16px;
+      border: none;
+      background-color: #2196f3;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0b7dda;
+    }
+
+    .icon {
+      font-size: 18px;
+      background: #eee;
+      border: none;
+      padding: 8px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    🤖 <b>RILEYELLY AI Chatbot</b>
+  </header>
+
+  <div id="chatbox" class="chatbox"></div>
+
+  <footer>
+    <input type="text" id="user-input" placeholder="Ask anything..." onkeydown="if(event.key==='Enter') sendMessage()" />
+    <div class="icon-buttons">
+      <button onclick="startSpeech()">🎙️</button>
+      <button onclick="sendMessage()">Send</button>
+      <button onclick="uploadFile()">📁</button>
+    </div>
+  </footer>
+
+  <script>
+    async function sendMessage() {
+      const input = document.getElementById("user-input");
+      const userMessage = input.value.trim();
+      if (!userMessage) return;
+
+      addMessage(userMessage, "user");
+      input.value = "";
+
+      const response = await fetch("/ask", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ query: userMessage })
+      });
+
+      const data = await response.json();
+      addMessage(data.response, "bot");
+    }
+
+    function addMessage(message, sender) {
+      const chatbox = document.getElementById("chatbox");
+      const msgDiv = document.createElement("div");
+      msgDiv.className = sender;
+      msgDiv.textContent = message;
+      chatbox.appendChild(msgDiv);
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
+
+    function startSpeech() {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = 'en-US';
+      recognition.start();
+      recognition.onresult = function (event) {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById("user-input").value = transcript;
+        sendMessage();
+      };
+    }
+
+    function uploadFile() {
+      alert("📁 Upload not implemented yet.");
+    }
+  </script>
+</body>
+</html>
