@@ -1,5 +1,3 @@
-
-
 import json
 import os
 import random
@@ -8,12 +6,12 @@ from datetime import datetime
 import openai
 import requests
 import wikipedia
-import pyttsx3
-import speech_recognition as sr
 import tkinter as tk
 from tkinter import filedialog, scrolledtext, messagebox
 import re
+from flask import Flask, request, jsonify, render_template
 
+# Load environment variables
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 weather_api_key = os.getenv("WEATHER_API_KEY")
@@ -21,12 +19,8 @@ weather_api_key = os.getenv("WEATHER_API_KEY")
 memory_file = "memory.json"
 log_file = "chat_logs.txt"
 current_theme = "light"
-speech_engine = pyttsx3.init()
 
-# TTS function
-def speak(text):
-    speech_engine.say(text)
-    speech_engine.runAndWait()
+# Removed pyttsx3 and TTS functionality
 
 # Save chat log
 def save_log(entry):
@@ -113,10 +107,9 @@ def handle_query(user_input):
             word = match.group("word") if match else user_input_lower.split("define")[-1].strip()
             return fetch_dictionary_definition(word)
 
-        # Wikipedia handling
         elif any(phrase in user_input_lower for phrase in ["who is", "what is"]) or len(user_input_lower.split()) >= 2:
             try:
-                topic = re.sub(r"(who is|what is|explain|tell me about)", "", user_input_lower).strip(" ?.")
+                topic = re.sub(r"(who is|what is|explain|tell me about)", "", user_input_lower).strip(" ?. ")
                 if topic:
                     summary = wikipedia.summary(topic, sentences=2)
                     return summary
@@ -153,7 +146,6 @@ def handle_query(user_input):
         return f"⚠️ Error in logic: {e}"
 
 # Flask API
-from flask import Flask, request, jsonify, render_template
 app = Flask(__name__)
 
 @app.route("/")
@@ -168,4 +160,5 @@ def ask():
     return jsonify({"response": response})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(debug=True, host='0.0.0.0', port=port)
