@@ -39,7 +39,7 @@ def fetch_dictionary_definition(word):
         else:
             return "❌ Sorry, I couldn't find the meaning."
     except Exception as e:
-        return f"⚠️ Error fetching definition: {e}"
+        return f"⚠ Error fetching definition: {e}"
 
 # Weather API
 def get_weather(city):
@@ -52,9 +52,9 @@ def get_weather(city):
             desc = data["weather"][0]["description"]
             return f"The weather in {city.title()} is {temp}°C with {desc}."
         else:
-            return "⚠️ City not found or weather unavailable."
+            return "⚠ City not found or weather unavailable."
     except Exception as e:
-        return f"⚠️ Error fetching weather: {e}"
+        return f"⚠ Error fetching weather: {e}"
 
 # Save and get user name
 def save_name(name):
@@ -73,7 +73,7 @@ def get_saved_name():
         else:
             return "I don’t know your name yet!"
     except:
-        return "⚠️ Error reading memory."
+        return "⚠ Error reading memory."
 
 # Handle input
 def handle_query(user_input):
@@ -100,7 +100,7 @@ def handle_query(user_input):
                 result = eval(user_input)
                 return f"The result is: {result}"
             except Exception as e:
-                return f"⚠️ Could not calculate: {e}"
+                return f"⚠ Could not calculate: {e}"
 
         elif "define" in user_input_lower:
             match = re.search(r"(?:define|meaning of|what is) (?:a |an |the )?(?P<word>\\w+)", user_input_lower)
@@ -120,7 +120,7 @@ def handle_query(user_input):
             except wikipedia.exceptions.PageError:
                 return "❌ I couldn't find any Wikipedia page for that."
             except Exception as e:
-                return f"⚠️ Error fetching info: {e}"
+                return f"⚠ Error fetching info: {e}"
 
         elif "my name is" in user_input_lower:
             name = user_input.split("my name is")[-1].strip()
@@ -138,15 +138,15 @@ def handle_query(user_input):
                 )
                 return response.choices[0].message.content.strip()
             except Exception as e:
-                return f"⚠️ GPT Error: {e}"
+                return f"⚠ GPT Error: {e}"
 
         else:
             return "🤖 I'm not sure, but I'm learning! Try asking about science, math, weather, or say 'define [word]'."
     except Exception as e:
-        return f"⚠️ Error in logic: {e}"
+        return f"⚠ Error in logic: {e}"
 
 # Flask API
-app = Flask(__name__)
+app = Flask(_name_)
 
 @app.route("/")
 def index():
@@ -159,6 +159,6 @@ def ask():
     response = handle_query(query)
     return jsonify({"response": response})
 
-if __name__ == '__main__':
+if _name_ == '_main_':
     port = int(os.environ.get("PORT", 5000))
     app.run(debug=True, host='0.0.0.0', port=port)
