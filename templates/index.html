@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,14 +23,30 @@
       flex-direction: column;
     }
 
+    /* ✅ Stylish Header */
     header {
-      background-color: #222;
-      color: white;
-      padding: 12px 24px;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: #ffffff;
+      padding: 16px 24px;
       font-size: 22px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .logo {
+      font-size: 26px;
+    }
+
+    .title {
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .title .highlight {
+      color: #00ffe7;
+      font-weight: 700;
     }
 
     .chatbox {
@@ -105,8 +122,10 @@
   </style>
 </head>
 <body>
+  <!-- ✅ New Stylish Header -->
   <header>
-    🤖 <b>RILEYELLY AI Chatbot</b>
+    <span class="logo">🤖</span>
+    <span class="title">RILEYELLY <span class="highlight">AI Chatbot</span></span>
   </header>
 
   <div id="chatbox" class="chatbox"></div>
@@ -143,27 +162,4 @@
 
     function addMessage(message, sender) {
       const chatbox = document.getElementById("chatbox");
-      const msgDiv = document.createElement("div");
-      msgDiv.className = sender;
-      msgDiv.textContent = message;
-      chatbox.appendChild(msgDiv);
-      chatbox.scrollTop = chatbox.scrollHeight;
-    }
-
-    function startSpeech() {
-      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-      recognition.lang = 'en-US';
-      recognition.start();
-      recognition.onresult = function (event) {
-        const transcript = event.results[0][0].transcript;
-        document.getElementById("user-input").value = transcript;
-        sendMessage();
-      };
-    }
-
-    function uploadFile() {
-      alert("📁 Upload not implemented yet.");
-    }
-  </script>
-</body>
-</html>
+      const msgDiv = document.createElemen
