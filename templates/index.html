@@ -23,18 +23,58 @@
       flex-direction: column;
     }
 
-    header {
+    .custom-header {
       background: linear-gradient(135deg, #1e3c72, #2a5298);
       color: white;
-      padding: 20px;
-      text-align: center;
-      font-size: 26px;
-      font-weight: bold;
-      letter-spacing: 1px;
+      padding: 16px 24px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       z-index: 100;
       position: sticky;
       top: 0;
+      font-family: "Segoe UI", sans-serif;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .viper-logo {
+      height: 32px;
+    }
+
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 24px;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+    }
+
+    .header-title .riley {
+      color: #00d4ff;
+    }
+
+    .header-title .ai {
+      color: #ffd700;
+    }
+
+    .header-title .chatbot {
+      color: #ffffff;
+    }
+
+    .header-title .separator {
+      color: #ffffff;
+    }
+
+    .slogan {
+      font-size: 14px;
+      margin-top: 4px;
+      margin-left: 44px;
+      color: #e0e0e0;
+      font-style: italic;
     }
 
     .chatbox {
@@ -110,8 +150,17 @@
   </style>
 </head>
 <body>
-  <header>
-    🤖 RILEYELLY AI Chatbot
+  <header class="custom-header">
+    <div class="header-top">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/0/0c/Viper_icon.svg" alt="Viper Logo" class="viper-logo" />
+      <div class="header-title">
+        <span class="riley">RILEYELLY</span>
+        <span class="separator">|</span>
+        <span class="ai">AI</span>
+        <span class="chatbot">Chatbot</span>
+      </div>
+    </div>
+    <div class="slogan">Talk smart. Code smarter.</div>
   </header>
 
   <div id="chatbox" class="chatbox"></div>
