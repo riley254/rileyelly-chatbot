@@ -24,13 +24,17 @@
     }
 
     header {
-      background-color: #222;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
       color: white;
-      padding: 12px 24px;
-      font-size: 22px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      padding: 20px;
+      text-align: center;
+      font-size: 26px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      z-index: 100;
+      position: sticky;
+      top: 0;
     }
 
     .chatbox {
@@ -107,7 +111,7 @@
 </head>
 <body>
   <header>
-    🤖 <b>RILEYELLY AI Chatbot</b>
+    🤖 RILEYELLY AI Chatbot
   </header>
 
   <div id="chatbox" class="chatbox"></div>
