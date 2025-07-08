@@ -23,58 +23,59 @@
       flex-direction: column;
     }
 
-    .custom-header {
+    /* Updated Header */
+    header.custom-header {
       background: linear-gradient(135deg, #1e3c72, #2a5298);
       color: white;
-      padding: 16px 24px;
+      padding: 16px 20px;
+      text-align: center;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      z-index: 100;
       position: sticky;
       top: 0;
-      font-family: "Segoe UI", sans-serif;
+      z-index: 100;
     }
 
     .header-top {
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 12px;
     }
 
     .viper-logo {
-      height: 32px;
+      width: 36px;
+      height: 36px;
     }
 
     .header-title {
-      display: flex;
-      align-items: center;
-      gap: 6px;
       font-size: 24px;
       font-weight: bold;
-      letter-spacing: 0.5px;
+      letter-spacing: 1px;
+      display: flex;
+      gap: 4px;
     }
 
-    .header-title .riley {
-      color: #00d4ff;
+    .riley {
+      color: #fff700;
     }
 
-    .header-title .ai {
-      color: #ffd700;
+    .ai {
+      color: #00ffc3;
     }
 
-    .header-title .chatbot {
+    .chatbot {
       color: #ffffff;
     }
 
-    .header-title .separator {
-      color: #ffffff;
+    .separator {
+      color: #ccc;
     }
 
     .slogan {
       font-size: 14px;
-      margin-top: 4px;
-      margin-left: 44px;
-      color: #e0e0e0;
-      font-style: italic;
+      color: #eeeeee;
+      margin-top: 6px;
+      letter-spacing: 0.5px;
     }
 
     .chatbox {
@@ -150,9 +151,10 @@
   </style>
 </head>
 <body>
+
   <header class="custom-header">
     <div class="header-top">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/0/0c/Viper_icon.svg" alt="Viper Logo" class="viper-logo" />
+      <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="Viper Logo" class="viper-logo" />
       <div class="header-title">
         <span class="riley">RILEYELLY</span>
         <span class="separator">|</span>
@@ -219,5 +221,6 @@
       alert("📁 Upload not implemented yet.");
     }
   </script>
+
 </body>
 </html>
