@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,18 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>RILEYELLY AI Chatbot</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
+    * { box-sizing: border-box; }
     html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
+      margin: 0; padding: 0; height: 100%;
       font-family: "Segoe UI", sans-serif;
       background-color: #f0f0f0;
     }
-
     body {
       display: flex;
       flex-direction: column;
@@ -43,8 +36,7 @@
     }
 
     .viper-logo {
-      width: 36px;
-      height: 36px;
+      width: 36px; height: 36px;
     }
 
     .header-title {
@@ -55,27 +47,26 @@
       gap: 4px;
     }
 
-    .riley {
-      color: #fff700;
-    }
-
-    .ai {
-      color: #00ffc3;
-    }
-
-    .chatbot {
-      color: #ffffff;
-    }
-
-    .separator {
-      color: #ccc;
-    }
+    .riley { color: #fff700; }
+    .ai { color: #00ffc3; }
+    .chatbot { color: #ffffff; }
+    .separator { color: #ccc; }
 
     .slogan {
       font-size: 14px;
       color: #eeeeee;
       margin-top: 6px;
       letter-spacing: 0.5px;
+    }
+
+    .search-results {
+      background: #fff;
+      padding: 12px;
+      font-size: 14px;
+      border-bottom: 1px solid #ccc;
+      max-height: 200px;
+      overflow-y: auto;
+      display: none;
     }
 
     .chatbox {
@@ -165,6 +156,8 @@
     <div class="slogan">Talk smart. Code smarter.</div>
   </header>
 
+  <div id="search-results" class="search-results"></div>
+
   <div id="chatbox" class="chatbox"></div>
 
   <footer>
@@ -178,6 +171,8 @@
 
   <script>
     const typingSound = new Audio("https://www.fesliyanstudios.com/play-mp3/387");
+    const apiKey = "AIzaSyDopzPpGivVfPAxNZ7MUUYpPDrCFwTtMO8";
+    const searchEngineId = "a6f6b0ae48b1048b2";
 
     async function sendMessage() {
       const input = document.getElementById("user-input");
@@ -187,13 +182,18 @@
       addMessage(userMessage, "user");
       input.value = "";
 
+      if (userMessage.toLowerCase().startsWith("search for")) {
+        const query = userMessage.replace("search for", "").trim();
+        await fetchSearchResults(query);
+        return;
+      }
+
+      clearSearchResults();
       addTypingIndicator();
 
       const response = await fetch("/ask", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: userMessage })
       });
 
@@ -231,10 +231,8 @@
       const msgDiv = document.createElement("div");
       msgDiv.className = "bot";
       chatbox.appendChild(msgDiv);
-
       let i = 0;
       const speed = 20;
-
       function typeChar() {
         if (i < text.length) {
           msgDiv.textContent += text.charAt(i);
@@ -245,7 +243,6 @@
           setTimeout(typeChar, speed);
         }
       }
-
       typeChar();
     }
 
@@ -262,6 +259,33 @@
 
     function uploadFile() {
       alert("📁 Upload not implemented yet.");
+    }
+
+    async function fetchSearchResults(query) {
+      const response = await fetch(`https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${searchEngineId}&q=${encodeURIComponent(query)}`);
+      const data = await response.json();
+      const results = data.items || [];
+      displaySearchResults(results);
+    }
+
+    function displaySearchResults(results) {
+      const container = document.getElementById("search-results");
+      container.style.display = "block";
+      container.innerHTML = results.map(item => `
+        <div>
+          <a href="${item.link}" target="_blank" style="color:#1a0dab;text-decoration:none;">
+            <strong>${item.title}</strong>
+          </a><br/>
+          <span style="color:#006621;">${item.link}</span><br/>
+          <p style="margin: 4px 0 12px; color: #545454;">${item.snippet}</p>
+        </div>
+      `).join('');
+    }
+
+    function clearSearchResults() {
+      const container = document.getElementById("search-results");
+      container.style.display = "none";
+      container.innerHTML = "";
     }
   </script>
 
