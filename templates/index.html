@@ -23,6 +23,7 @@
       flex-direction: column;
     }
 
+    /* Header */
     header.custom-header {
       background: linear-gradient(135deg, #1e3c72, #2a5298);
       color: white;
@@ -176,6 +177,8 @@
   </footer>
 
   <script>
+    const typingSound = new Audio("https://www.fesliyanstudios.com/play-mp3/387");
+
     async function sendMessage() {
       const input = document.getElementById("user-input");
       const userMessage = input.value.trim();
@@ -235,6 +238,8 @@
       function typeChar() {
         if (i < text.length) {
           msgDiv.textContent += text.charAt(i);
+          typingSound.currentTime = 0;
+          typingSound.play().catch(() => {});
           i++;
           chatbox.scrollTop = chatbox.scrollHeight;
           setTimeout(typeChar, speed);
@@ -259,5 +264,6 @@
       alert("📁 Upload not implemented yet.");
     }
   </script>
+
 </body>
 </html>
