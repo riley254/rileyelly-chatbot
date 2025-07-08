@@ -23,16 +23,14 @@
       flex-direction: column;
     }
 
-    /* Stylish header */
     header {
-      background: linear-gradient(90deg, #0f2027, #203a43, #2c5364);
+      background-color: #222;
       color: white;
-      padding: 16px;
-      font-size: 24px;
-      text-align: center;
-      font-weight: bold;
-      letter-spacing: 1px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      padding: 12px 24px;
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .chatbox {
@@ -109,7 +107,7 @@
 </head>
 <body>
   <header>
-    🤖 RILEYELLY AI Chatbot
+    🤖 <b>RILEYELLY AI Chatbot</b>
   </header>
 
   <div id="chatbox" class="chatbox"></div>
@@ -132,17 +130,16 @@
       addMessage(userMessage, "user");
       input.value = "";
 
-      try {
-        const response = await fetch("/ask", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query: userMessage })
-        });
-        const data = await response.json();
-        addMessage(data.response, "bot");
-      } catch (err) {
-        addMessage("⚠️ Server error", "bot");
-      }
+      const response = await fetch("/ask", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ query: userMessage })
+      });
+
+      const data = await response.json();
+      addMessage(data.response, "bot");
     }
 
     function addMessage(message, sender) {
