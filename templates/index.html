@@ -23,30 +23,16 @@
       flex-direction: column;
     }
 
-    /* ✅ Stylish Header */
+    /* Stylish header */
     header {
-      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-      color: #ffffff;
-      padding: 16px 24px;
-      font-size: 22px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    }
-
-    .logo {
-      font-size: 26px;
-    }
-
-    .title {
-      font-weight: 600;
-      letter-spacing: 0.5px;
-    }
-
-    .title .highlight {
-      color: #00ffe7;
-      font-weight: 700;
+      background: linear-gradient(90deg, #0f2027, #203a43, #2c5364);
+      color: white;
+      padding: 16px;
+      font-size: 24px;
+      text-align: center;
+      font-weight: bold;
+      letter-spacing: 1px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
 
     .chatbox {
@@ -122,10 +108,8 @@
   </style>
 </head>
 <body>
-  <!-- ✅ New Stylish Header -->
   <header>
-    <span class="logo">🤖</span>
-    <span class="title">RILEYELLY <span class="highlight">AI Chatbot</span></span>
+    🤖 RILEYELLY AI Chatbot
   </header>
 
   <div id="chatbox" class="chatbox"></div>
@@ -148,18 +132,42 @@
       addMessage(userMessage, "user");
       input.value = "";
 
-      const response = await fetch("/ask", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ query: userMessage })
-      });
-
-      const data = await response.json();
-      addMessage(data.response, "bot");
+      try {
+        const response = await fetch("/ask", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query: userMessage })
+        });
+        const data = await response.json();
+        addMessage(data.response, "bot");
+      } catch (err) {
+        addMessage("⚠️ Server error", "bot");
+      }
     }
 
     function addMessage(message, sender) {
       const chatbox = document.getElementById("chatbox");
-      const msgDiv = document.createElemen
+      const msgDiv = document.createElement("div");
+      msgDiv.className = sender;
+      msgDiv.textContent = message;
+      chatbox.appendChild(msgDiv);
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
+
+    function startSpeech() {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = 'en-US';
+      recognition.start();
+      recognition.onresult = function (event) {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById("user-input").value = transcript;
+        sendMessage();
+      };
+    }
+
+    function uploadFile() {
+      alert("📁 Upload not implemented yet.");
+    }
+  </script>
+</body>
+</html>
