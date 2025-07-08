@@ -23,7 +23,6 @@
       flex-direction: column;
     }
 
-    /* Updated Header */
     header.custom-header {
       background: linear-gradient(135deg, #1e3c72, #2a5298);
       color: white;
@@ -185,6 +184,8 @@
       addMessage(userMessage, "user");
       input.value = "";
 
+      addTypingIndicator();
+
       const response = await fetch("/ask", {
         method: "POST",
         headers: {
@@ -194,7 +195,8 @@
       });
 
       const data = await response.json();
-      addMessage(data.response, "bot");
+      removeTypingIndicator();
+      typeBotMessage(data.response);
     }
 
     function addMessage(message, sender) {
@@ -204,6 +206,42 @@
       msgDiv.textContent = message;
       chatbox.appendChild(msgDiv);
       chatbox.scrollTop = chatbox.scrollHeight;
+    }
+
+    function addTypingIndicator() {
+      const chatbox = document.getElementById("chatbox");
+      const typingDiv = document.createElement("div");
+      typingDiv.className = "bot";
+      typingDiv.id = "typing-indicator";
+      typingDiv.textContent = "Typing...";
+      chatbox.appendChild(typingDiv);
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
+
+    function removeTypingIndicator() {
+      const typingDiv = document.getElementById("typing-indicator");
+      if (typingDiv) typingDiv.remove();
+    }
+
+    function typeBotMessage(text) {
+      const chatbox = document.getElementById("chatbox");
+      const msgDiv = document.createElement("div");
+      msgDiv.className = "bot";
+      chatbox.appendChild(msgDiv);
+
+      let i = 0;
+      const speed = 20;
+
+      function typeChar() {
+        if (i < text.length) {
+          msgDiv.textContent += text.charAt(i);
+          i++;
+          chatbox.scrollTop = chatbox.scrollHeight;
+          setTimeout(typeChar, speed);
+        }
+      }
+
+      typeChar();
     }
 
     function startSpeech() {
@@ -221,6 +259,5 @@
       alert("📁 Upload not implemented yet.");
     }
   </script>
-
 </body>
 </html>
