@@ -1,3 +1,4 @@
+
 import json
 import os
 import random
@@ -19,8 +20,6 @@ weather_api_key = os.getenv("WEATHER_API_KEY")
 memory_file = "memory.json"
 log_file = "chat_logs.txt"
 current_theme = "light"
-
-# Removed pyttsx3 and TTS functionality
 
 # Save chat log
 def save_log(entry):
@@ -103,7 +102,7 @@ def handle_query(user_input):
                 return f"⚠ Could not calculate: {e}"
 
         elif "define" in user_input_lower:
-            match = re.search(r"(?:define|meaning of|what is) (?:a |an |the )?(?P<word>\\w+)", user_input_lower)
+            match = re.search(r"(?:define|meaning of|what is) (?:a |an |the )?(?P<word>\w+)", user_input_lower)
             word = match.group("word") if match else user_input_lower.split("define")[-1].strip()
             return fetch_dictionary_definition(word)
 
@@ -146,7 +145,7 @@ def handle_query(user_input):
         return f"⚠ Error in logic: {e}"
 
 # Flask API
-app = Flask(_name_)
+app = Flask(__name__)
 
 @app.route("/")
 def index():
@@ -159,6 +158,6 @@ def ask():
     response = handle_query(query)
     return jsonify({"response": response})
 
-if _name_ == '_main_':
+if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(debug=True, host='0.0.0.0', port=port)
