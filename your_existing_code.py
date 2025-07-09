@@ -16,6 +16,8 @@ from flask import Flask, request, jsonify, render_template
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 weather_api_key = os.getenv("WEATHER_API_KEY")
+google_api_key = os.getenv("GOOGLE_API_KEY")  # ✅ Added
+google_cx = os.getenv("GOOGLE_CX")              # ✅ Added
 
 memory_file = "memory.json"
 log_file = "chat_logs.txt"
@@ -55,6 +57,27 @@ def get_weather(city):
     except Exception as e:
         return f"⚠ Error fetching weather: {e}"
 
+# Google Custom Search API
+def search_google(query):
+    try:
+        url = "https://www.googleapis.com/customsearch/v1"
+        params = {
+            "key": google_api_key,
+            "cx": google_cx,
+            "q": query
+        }
+        response = requests.get(url, params=params)
+        results = response.json().get("items", [])
+        if not results:
+            return "❌ No results found."
+        top_result = results[0]
+        title = top_result["title"]
+        snippet = top_result.get("snippet", "")
+        link = top_result["link"]
+        return f"🔎 {title}\n{snippet}\n🔗 {link}"
+    except Exception as e:
+        return f"⚠ Error searching Google: {e}"
+
 # Save and get user name
 def save_name(name):
     try:
@@ -78,6 +101,10 @@ def get_saved_name():
 def handle_query(user_input):
     try:
         user_input_lower = user_input.lower()
+
+        if user_input_lower.startswith("search for"):
+            query = user_input_lower.replace("search for", "", 1).strip()
+            return search_google(query)
 
         if "weather" in user_input_lower:
             city = user_input_lower.split("weather in")[-1].strip()
