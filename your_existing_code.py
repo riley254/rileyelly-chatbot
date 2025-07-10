@@ -1,4 +1,5 @@
 
+
 import json
 import os
 import random
@@ -16,19 +17,34 @@ from flask import Flask, request, jsonify, render_template
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 weather_api_key = os.getenv("WEATHER_API_KEY")
-google_api_key = os.getenv("GOOGLE_API_KEY")  # ✅ Added
-google_cx = os.getenv("GOOGLE_CX")              # ✅ Added
+google_api_key = os.getenv("GOOGLE_API_KEY")
+google_cx = os.getenv("GOOGLE_CX")
 
 memory_file = "memory.json"
 log_file = "chat_logs.txt"
+chat_history_dir = "chat_history"
 current_theme = "light"
 
-# Save chat log
+if not os.path.exists(chat_history_dir):
+    os.makedirs(chat_history_dir)
+
 def save_log(entry):
     with open(log_file, "a", encoding="utf-8") as f:
         f.write(entry + "\n")
 
-# Dictionary API
+def save_chat_history(user_id, question, answer):
+    try:
+        file_path = os.path.join(chat_history_dir, f"{user_id}.json")
+        history = []
+        if os.path.exists(file_path):
+            with open(file_path, "r") as f:
+                history = json.load(f)
+        history.append({"question": question, "answer": answer})
+        with open(file_path, "w") as f:
+            json.dump(history, f, indent=2)
+    except Exception as e:
+        print(f"⚠ Error saving chat history: {e}")
+
 def fetch_dictionary_definition(word):
     try:
         url = f"https://api.dictionaryapi.dev/api/v2/entries/en/{word}"
@@ -42,7 +58,6 @@ def fetch_dictionary_definition(word):
     except Exception as e:
         return f"⚠ Error fetching definition: {e}"
 
-# Weather API
 def get_weather(city):
     try:
         url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={weather_api_key}&units=metric"
@@ -57,7 +72,6 @@ def get_weather(city):
     except Exception as e:
         return f"⚠ Error fetching weather: {e}"
 
-# Google Custom Search API
 def search_google(query):
     try:
         url = "https://www.googleapis.com/customsearch/v1"
@@ -68,17 +82,26 @@ def search_google(query):
         }
         response = requests.get(url, params=params)
         results = response.json().get("items", [])
+
         if not results:
             return "❌ No results found."
-        top_result = results[0]
-        title = top_result["title"]
-        snippet = top_result.get("snippet", "")
-        link = top_result["link"]
-        return f"🔎 {title}\n{snippet}\n🔗 {link}"
+
+        snippets = [item.get("snippet", "") for item in results[:3]]
+        combined_text = " ".join(snippets)
+
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant. Use the search snippets to give a complete, natural response."},
+                {"role": "user", "content": f"Search results: {combined_text}\n\nGive a full answer to: {query}"}
+            ]
+        )
+
+        return response.choices[0].message.content.strip()
+
     except Exception as e:
         return f"⚠ Error searching Google: {e}"
 
-# Save and get user name
 def save_name(name):
     try:
         with open(memory_file, "w") as f:
@@ -97,81 +120,127 @@ def get_saved_name():
     except:
         return "⚠ Error reading memory."
 
-# Handle input
-def handle_query(user_input):
+def extract_keyword_for_definition(text):
+    match = re.search(r"(?:define|meaning of|what is|what's|whats|definition of) (?:a |an |the )?(?P<word>\w+)", text)
+    return match.group("word") if match else text.split()[-1]
+
+def handle_query(user_input, user_id="default"):
     try:
         user_input_lower = user_input.lower()
 
         if user_input_lower.startswith("search for"):
             query = user_input_lower.replace("search for", "", 1).strip()
-            return search_google(query)
+            answer = search_google(query)
+            save_chat_history(user_id, user_input, answer)
+            return answer
 
-        if "weather" in user_input_lower:
+        if any(trigger in user_input_lower for trigger in ["who is", "what is", "how long", "how many", "where is", "when did"]):
+            answer = search_google(user_input)
+            save_chat_history(user_id, user_input, answer)
+            return answer
+
+        if "weather in" in user_input_lower:
             city = user_input_lower.split("weather in")[-1].strip()
-            return get_weather(city)
+            answer = get_weather(city)
+            save_chat_history(user_id, user_input, answer)
+            return answer
 
-        elif any(word in user_input_lower for word in ["hello", "hi", "hey", "bonjour", "jambo", "niaje"]):
-            greetings = [
-                "👋 Hello! How can I help you?",
-                "👋 Hi there! What can I do for you?",
-                "👋 Hey! Need any help?",
-                "👋 Bonjour! Comment puis-je vous aider?",
-                "👋 Jambo rafiki! Nifanye nini leo?",
-                "👋 Niaje! Niko rada, sema basi!"
-            ]
-            return random.choice(greetings)
+        if any(word in user_input_lower for word in ["define", "meaning of", "definition of", "what is"]):
+            word = extract_keyword_for_definition(user_input_lower)
+            answer = fetch_dictionary_definition(word)
+            save_chat_history(user_id, user_input, answer)
+            return answer
 
-        elif any(op in user_input_lower for op in ["add", "subtract", "multiply", "divide", "+", "-", "*", "/"]):
-            try:
-                result = eval(user_input)
-                return f"The result is: {result}"
-            except Exception as e:
-                return f"⚠ Could not calculate: {e}"
-
-        elif "define" in user_input_lower:
-            match = re.search(r"(?:define|meaning of|what is) (?:a |an |the )?(?P<word>\w+)", user_input_lower)
-            word = match.group("word") if match else user_input_lower.split("define")[-1].strip()
-            return fetch_dictionary_definition(word)
-
-        elif any(phrase in user_input_lower for phrase in ["who is", "what is"]) or len(user_input_lower.split()) >= 2:
-            try:
-                topic = re.sub(r"(who is|what is|explain|tell me about)", "", user_input_lower).strip(" ?. ")
-                if topic:
-                    summary = wikipedia.summary(topic, sentences=2)
-                    return summary
-                else:
-                    return "❓ Please provide a topic to search."
-            except wikipedia.exceptions.DisambiguationError as e:
-                return f"❗ That topic is too broad. Try being more specific like '{e.options[0]}'"
-            except wikipedia.exceptions.PageError:
-                return "❌ I couldn't find any Wikipedia page for that."
-            except Exception as e:
-                return f"⚠ Error fetching info: {e}"
-
-        elif "my name is" in user_input_lower:
+        if "my name is" in user_input_lower:
             name = user_input.split("my name is")[-1].strip()
             save_name(name)
             return f"Nice to meet you, {name}! 👋"
 
-        elif "what's my name" in user_input_lower:
-            return get_saved_name()
+        if "what's my name" in user_input_lower:
+            answer = get_saved_name()
+            save_chat_history(user_id, user_input, answer)
+            return answer
 
-        elif "science" in user_input_lower or "history" in user_input_lower:
+        if any(op in user_input_lower for op in ["add", "subtract", "multiply", "divide", "+", "-", "*", "/"]):
             try:
-                response = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
-                    messages=[{"role": "user", "content": user_input}]
-                )
-                return response.choices[0].message.content.strip()
-            except Exception as e:
-                return f"⚠ GPT Error: {e}"
+                result = eval(user_input)
+                answer = f"The result is: {result}"
+                save_chat_history(user_id, user_input, answer)
+                return answer
+            except:
+                pass
 
-        else:
-            return "🤖 I'm not sure, but I'm learning! Try asking about science, math, weather, or say 'define [word]'."
+        greetings = [
+            "hello", "hi", "hey", "bonjour", "jambo", "niaje", "mambo", "vipi", 
+            "how are you", "how are you doing", "how’s your day", "habari", 
+            "salama", "sasa", "shikamoo", "good morning", "good afternoon", 
+            "good evening", "yo", "wasap", "whats up", "uko vipi", "uko aje", 
+            "vipi bro", "alo", "aloh", "mzing", "ozza", "wozza", "ozah", "oza", 
+            "mkuu"
+        ]
+        if any(greet in user_input_lower for greet in greetings):
+            answer = random.choice([
+                "👋 Hello! How can I help you?",
+                "🖐️ Hi there! Karibu.",
+                "😄 Mambo vipi?",
+                "👋 Niaje bro!",
+                "🖖 Uko aje msee?",
+                "😊 I'm doing great! And you?",
+                "👋 Shikamoo!",
+                "🫡 Poa sana, na wewe je?",
+                "🔥 Wozza! Niko rada.",
+                "🧠 Oza! Sema basi.",
+                "👋 Salama kabisa. Karibu!",
+                "💬 Wazup chief! Uko freshi?"
+            ])
+            save_chat_history(user_id, user_input, answer)
+            return answer
+
+        if any(q in user_input_lower for q in ["who are you", "what are you"]):
+            answer = "🤖 I'm RileyElly AI Chatbot — a smart assistant ready to help."
+            save_chat_history(user_id, user_input, answer)
+            return answer
+
+        if "who is your owner" in user_input_lower or "who owns you" in user_input_lower:
+            answer = "👤 My owner is Elly, also known as Thee Calculator."
+            save_chat_history(user_id, user_input, answer)
+            return answer
+
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": user_input}]
+            ).choices[0].message.content.strip()
+            if response:
+                save_chat_history(user_id, user_input, response)
+                return response
+        except Exception as e:
+            print("OpenAI error:", e)
+
+        try:
+            search_response = search_google(user_input)
+            if "No results" not in search_response:
+                save_chat_history(user_id, user_input, search_response)
+                return search_response
+        except:
+            pass
+
+        try:
+            topic = re.sub(r"(who is|what is|explain|tell me about)", "", user_input_lower).strip(" ?. ")
+            if topic:
+                answer = wikipedia.summary(topic, sentences=2)
+                save_chat_history(user_id, user_input, answer)
+                return answer
+        except:
+            pass
+
+        fallback = "🤖 I'm still learning and under maintenance by Elly."
+        save_chat_history(user_id, user_input, fallback)
+        return fallback
+
     except Exception as e:
-        return f"⚠ Error in logic: {e}"
+        return f"⚠ Error: {e}"
 
-# Flask API
 app = Flask(__name__)
 
 @app.route("/")
@@ -182,7 +251,8 @@ def index():
 def ask():
     data = request.get_json()
     query = data.get("query", "")
-    response = handle_query(query)
+    user_id = data.get("user_id", "default")
+    response = handle_query(query, user_id)
     return jsonify({"response": response})
 
 if __name__ == '__main__':
