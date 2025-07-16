@@ -1,5 +1,3 @@
-
-
 import json
 import os
 import random
@@ -18,7 +16,8 @@ load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 weather_api_key = os.getenv("WEATHER_API_KEY")
 google_api_key = os.getenv("GOOGLE_API_KEY")
-google_cx = os.getenv("GOOGLE_CX")
+google_cx = os.getenv("SEARCH_ENGINE_ID")
+blackbox_api_key = os.getenv("BLACKBOX_API_KEY")  # ✅ moved from hardcoded to env
 
 memory_file = "memory.json"
 log_file = "chat_logs.txt"
@@ -102,6 +101,27 @@ def search_google(query):
     except Exception as e:
         return f"⚠ Error searching Google: {e}"
 
+def query_blackbox(prompt):
+    try:
+        url = "https://api.blackbox.ai/chat"
+        headers = {
+            "Authorization": f"Bearer {blackbox_api_key}",
+            "Content-Type": "application/json"
+        }
+        data = {
+            "prompt": prompt,
+            "temperature": 0.7,
+            "max_tokens": 100
+        }
+
+        response = requests.post(url, headers=headers, json=data)
+        if response.status_code == 200:
+            return response.json().get("response", "✅ Response received, but empty.")
+        else:
+            return f"❌ Blackbox API error: {response.status_code} - {response.text}"
+    except Exception as e:
+        return f"⚠ Error querying Blackbox: {e}"
+
 def save_name(name):
     try:
         with open(memory_file, "w") as f:
@@ -158,6 +178,12 @@ def handle_query(user_input, user_id="default"):
 
         if "what's my name" in user_input_lower:
             answer = get_saved_name()
+            save_chat_history(user_id, user_input, answer)
+            return answer
+
+        if user_input_lower.startswith("blackbox:"):
+            prompt = user_input_lower.replace("blackbox:", "").strip()
+            answer = query_blackbox(prompt)
             save_chat_history(user_id, user_input, answer)
             return answer
 
